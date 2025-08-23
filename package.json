@@ -1,0 +1,31 @@
+{
+  "name": "ai-backend",
+  "version": "1.0.0",
+  "description": "Backend for AI Chat using OpenRouter GPT-4o",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx nodemon server.js"
+  },
+  "keywords": [
+    "ai",
+    "chat",
+    "express",
+    "openrouter"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^7.2.0",
+    "livekit-server-sdk": "^2.13.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
