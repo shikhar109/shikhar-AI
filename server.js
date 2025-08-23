@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
@@ -6,6 +5,7 @@ import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
@@ -81,7 +81,10 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// Root route
-app.get("/", (req, res) => res.send("✅ ChatGPT 4o Server running with prompt file!"));
+// Serve React frontend
+app.use(express.static(path.join(__dirname, "build")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "build", "index.html"));
+});
 
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
