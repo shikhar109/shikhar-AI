@@ -13,37 +13,44 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middlewares
+// ------------------- Middlewares -------------------
+
+// Security headers
 app.use(helmet());
+
+// Parse JSON requests
 app.use(express.json());
 
-// Allow only your Netlify frontend
-app.use(
-  cors({
-    origin: "https://vinayak2024.netlify.app", // your Netlify frontend URL
-  })
-);
+// Allow only your frontend
+app.use(cors({
+  origin: "https://vinayak2024.netlify.app" // <-- Replace with your frontend URL
+}));
 
-// Rate limiter (50 requests per minute per IP)
-const limiter = rateLimit({
+// Rate limiter: 50 requests per minute per IP
+app.use(rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 50,
-});
-app.use(limiter);
+}));
+
+// ------------------- Helper functions -------------------
 
 // OpenRouter API key
 const OPENROUTER_API_KEY = process.env.GENERAL_MODEL;
 
-// Read system prompt from file
+// Read system prompt
 function getSystemPrompt() {
   try {
-    const prompt = fs.readFileSync(path.join("prompt.txt"), "utf-8");
-    return prompt;
+    return fs.readFileSync(path.join("prompt.txt"), "utf-8");
   } catch (err) {
     console.error("Error reading prompt.txt:", err);
     return "You are a helpful AI assistant.";
   }
 }
+
+// ------------------- Routes -------------------
+
+// Health check
+app.get("/", (req, res) => res.send("✅ Server running!"));
 
 // Chat endpoint
 app.post("/chat", async (req, res) => {
@@ -84,7 +91,5 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// Root route to check server status
-app.get("/", (req, res) => res.send("✅ ChatGPT 4o Server running!"));
-
+// ------------------- Start server -------------------
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
