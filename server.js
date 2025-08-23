@@ -7,14 +7,8 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
-// Load environment variables
 dotenv.config();
-
-// ES module __dirname workaround
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,15 +16,17 @@ const PORT = process.env.PORT || 5000;
 // Middlewares
 app.use(helmet());
 app.use(express.json());
+
+// Allow only your Netlify frontend
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "*",
+    origin: "https://vinayak2024.netlify.app", // your Netlify frontend URL
   })
 );
 
-// Rate limiter
+// Rate limiter (50 requests per minute per IP)
 const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
+  windowMs: 1 * 60 * 1000,
   max: 50,
 });
 app.use(limiter);
@@ -38,10 +34,10 @@ app.use(limiter);
 // OpenRouter API key
 const OPENROUTER_API_KEY = process.env.GENERAL_MODEL;
 
-// Read prompt file
+// Read system prompt from file
 function getSystemPrompt() {
   try {
-    const prompt = fs.readFileSync(path.join(__dirname, "prompt.txt"), "utf-8");
+    const prompt = fs.readFileSync(path.join("prompt.txt"), "utf-8");
     return prompt;
   } catch (err) {
     console.error("Error reading prompt.txt:", err);
@@ -88,12 +84,7 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// Serve React frontend
-app.use(express.static(path.join(__dirname, "build")));
+// Root route to check server status
+app.get("/", (req, res) => res.send("✅ ChatGPT 4o Server running!"));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
-
-// Start server
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
