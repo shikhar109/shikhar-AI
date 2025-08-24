@@ -21,9 +21,11 @@ app.use(helmet());
 // Parse JSON requests
 app.use(express.json());
 
-// Allow only your frontend
+// CORS: allow your frontend
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://your-netlify-site.netlify.app";
 app.use(cors({
-  origin: "https://vinayak2024.netlify.app" // <-- Replace with your frontend URL
+  origin: FRONTEND_URL,
+  methods: ["GET", "POST"],
 }));
 
 // Rate limiter: 50 requests per minute per IP
@@ -32,12 +34,9 @@ app.use(rateLimit({
   max: 50,
 }));
 
-// ------------------- Helper functions -------------------
+// ------------------- Helper -------------------
 
-// OpenRouter API key
-const OPENROUTER_API_KEY = process.env.GENERAL_MODEL;
-
-// Read system prompt
+// Read system prompt from file
 function getSystemPrompt() {
   try {
     return fs.readFileSync(path.join("prompt.txt"), "utf-8");
@@ -54,7 +53,7 @@ app.get("/", (req, res) => res.send("✅ Server running!"));
 
 // Chat endpoint
 app.post("/chat", async (req, res) => {
-  const { message } = req.body;
+  const { message, history } = req.body;
   if (!message) return res.status(400).json({ error: "Message is required" });
 
   const systemPrompt = getSystemPrompt();
@@ -63,7 +62,7 @@ app.post("/chat", async (req, res) => {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -71,6 +70,7 @@ app.post("/chat", async (req, res) => {
         max_tokens: 500,
         messages: [
           { role: "system", content: systemPrompt },
+          ...(history || []),
           { role: "user", content: message },
         ],
       }),
